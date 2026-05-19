@@ -1,0 +1,20 @@
+import type { Config } from 'jest'
+import nextJest from 'next/jest.js'
+
+// Aponta para a raiz do projeto para o Jest ler o next.config.ts e ficheiros .env
+const createJestConfig = nextJest({
+    dir: './',
+})
+
+const config: Config = {
+    coverageProvider: 'v8',
+    testEnvironment: 'jsdom',
+    // Vamos dizer ao Jest para carregar um ficheiro de preparação antes dos testes
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+    moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+    },
+}
+
+// Exporta a configuração para o Next.js a processar
+export default createJestConfig(config)

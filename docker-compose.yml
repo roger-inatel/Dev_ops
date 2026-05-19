@@ -1,0 +1,54 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: adotapet_mysql
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: adotapet
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend/tst-back-s204
+      dockerfile: Dockerfile
+
+    container_name: adotapet_backend
+    restart: always
+
+    depends_on:
+      - mysql
+
+    environment:
+      PORT: 3000
+      DATABASE_URL: "mysql://root:root@mysql:3306/adotapet"
+      JWT_SECRET: "trocar_em_producao"
+
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ./frontend/tst-front-s204
+      dockerfile: Dockerfile
+
+    container_name: adotapet_frontend
+    restart: always
+
+    depends_on:
+      - backend
+
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+
+    ports:
+      - "3001:3000"
+
+volumes:
+  mysql_data:
