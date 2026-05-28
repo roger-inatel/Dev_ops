@@ -13,6 +13,7 @@ import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import BackToHome from '@/components/ui/BackToHome';
 
 //  O CONTRATO (ZOD): Aqui definimos as regras do formulário
 const loginSchema = z.object({
@@ -45,12 +46,12 @@ export default function Login() {
         try {
             setError(null);
             const response = await api.login(data);
-            
+
             // Salva o token no localStorage e atualiza o estado global
-            login(response.access_token);
-            
+            login(response.access_token, response.user);
+
             // Redireciona para a home
-            router.push('/');
+            router.push('/dashboard');
         } catch (err: any) {
             setError(err.message || 'E-mail ou senha inválidos');
             console.error("Erro no login:", err);
@@ -189,11 +190,8 @@ export default function Login() {
                                     </button>
                                 </Link>
                             </form>
-
-                            <div className="mt-6 text-center">
-                                <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                                    ← Voltar para o site
-                                </Link>
+                            <div className="mt-6">
+                                <BackToHome centered />
                             </div>
                         </div>
 

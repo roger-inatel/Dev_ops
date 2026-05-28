@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useRouter } from 'next/navigation';
 import BackToHome from '@/components/ui/BackToHome';
+import Header from '@/components/layout/Header';
 
 export default function DenunciarPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function DenunciarPage() {
 
   return (
     <main className="bg-[#F9F7F2] min-h-screen font-sans">
-      <Navbar />
+      <Header />
       <div className="h-20" />
       <BackToHome />
 

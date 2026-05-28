@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BackToHome from '@/components/ui/BackToHome';
+import Header from '@/components/layout/Header';
 
 const contatoSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -57,7 +58,7 @@ export default function ContatoPage() {
 
   return (
     <main className="bg-[#F9F7F2] min-h-screen font-sans">
-      <Navbar />
+      <Header />
       <div className="h-20" />
       <BackToHome />
 
