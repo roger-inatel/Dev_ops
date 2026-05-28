@@ -59,7 +59,11 @@ describe("Página de Login", () => {
     });
 
     it("deve realizar login com sucesso e redirecionar", async () => {
-        (api.login as jest.Mock).mockResolvedValue({ access_token: "fake-token" });
+        const mockUser = { name: "Test User", email: "test@example.com", role: "adopter" };
+        (api.login as jest.Mock).mockResolvedValue({ 
+            access_token: "fake-token",
+            user: mockUser
+        });
         
         render(<Login />);
 
@@ -76,8 +80,8 @@ describe("Página de Login", () => {
                 email: "test@example.com",
                 password: "password123",
             });
-            expect(mockLogin).toHaveBeenCalledWith("fake-token");
-            expect(mockPush).toHaveBeenCalledWith("/");
+            expect(mockLogin).toHaveBeenCalledWith("fake-token", mockUser);
+            expect(mockPush).toHaveBeenCalledWith("/dashboard");
         });
     });
 

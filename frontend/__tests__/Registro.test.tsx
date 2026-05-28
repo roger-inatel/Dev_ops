@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Mock do next/navigation
 jest.mock("next/navigation", () => ({
@@ -49,7 +50,11 @@ describe("Página de Registro", () => {
     });
 
     it("deve mostrar mensagens de erro ao tentar enviar o formulário vazio", async () => {
-        render(<Register />);
+        render(
+            <AuthProvider>
+                <Register />
+            </AuthProvider>
+        );
 
         const botaoCriarConta = screen.getByRole("button", { name: /criar conta/i });
         await userEvent.click(botaoCriarConta);
@@ -66,7 +71,11 @@ describe("Página de Registro", () => {
     });
 
     it("Deve verificar se as senhas são iguais", async () => {
-        render(<Register />);
+        render(
+            <AuthProvider>
+                <Register />
+            </AuthProvider>
+        );
 
         await userEvent.type(screen.getByLabelText("Senha"), "Password123!");
         await userEvent.type(screen.getByLabelText("Confirmar senha"), "Diferente123!");
@@ -81,7 +90,11 @@ describe("Página de Registro", () => {
         const alertMock = jest.spyOn(window, "alert").mockImplementation();
         (api.register as jest.Mock).mockResolvedValue({ id: 1 });
         
-        render(<Register />);
+        render(
+            <AuthProvider>
+                <Register />
+            </AuthProvider>
+        );
         const usuario = criarUsuarioValido();
 
         await userEvent.type(screen.getByLabelText("Nome completo"), usuario.name);

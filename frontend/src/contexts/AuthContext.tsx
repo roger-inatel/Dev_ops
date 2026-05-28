@@ -37,19 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // ⚠️ MOCK TEMPORÁRIO — Removido para testar integração real
-    /* */
-    setIsAuthenticated(true);
-    setUser({
-      name: 'Lilyan Teste',
-      email: 'lilyan@adotapet.com',
-      role: 'ong', // troque para 'ong' para ver o painel da ONG
-    });
-    setLoading(false);
-    return; // essa linha faz ignorar o resto do useEffect
-
-    // ⚠️ fim do mock
-
     // Verifica token e dados do usuário no localStorage ao carregar
     const token = localStorage.getItem('adotapet_token');
     const storedUser = localStorage.getItem('adotapet_user');
@@ -62,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Dados corrompidos — limpa tudo
         localStorage.removeItem('adotapet_token');
         localStorage.removeItem('adotapet_user');
+        document.cookie = 'adotapet_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
     }
     setLoading(false);
@@ -70,6 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (token: string, userData: AuthUser) => {
     localStorage.setItem('adotapet_token', token);
     localStorage.setItem('adotapet_user', JSON.stringify(userData));
+    
+    // Define cookie para o middleware funcionar (expira em 7 dias)
+    document.cookie = `adotapet_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+
     setIsAuthenticated(true);
     setUser(userData);
   };
@@ -77,6 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('adotapet_token');
     localStorage.removeItem('adotapet_user');
+    
+    // Remove cookie
+    document.cookie = 'adotapet_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
     setIsAuthenticated(false);
     setUser(null);
   };
