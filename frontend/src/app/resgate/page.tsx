@@ -20,9 +20,9 @@ const resgateSchema = z.object({
   reference: z.string().optional(),
 
   // Info do animal
-  animalType: z.enum(['dog', 'cat', 'other'], { required_error: 'Selecione o tipo de animal' }),
+  animalType: z.enum(['dog', 'cat', 'other'], { error: 'Selecione o tipo de animal' }),
   animalCondition: z.enum(['injured', 'abandoned', 'sick', 'other'], {
-    required_error: 'Selecione a condição do animal',
+    error: 'Selecione a condição do animal',
   }),
   animalCount: z.string().min(1, 'Informe quantos animais'),
 

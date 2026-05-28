@@ -19,10 +19,10 @@ import BackToDashboard from '@/components/ui/BackToHome';
 
 const adocaoSchema = z.object({
   motivation: z.string().min(20, 'Conte um pouco mais sobre sua motivação (mín. 20 caracteres)'),
-  hasOtherPets: z.enum(['yes', 'no'], { required_error: 'Selecione uma opção' }),
-  hasChildren: z.enum(['yes', 'no'], { required_error: 'Selecione uma opção' }),
-  housingType: z.enum(['house', 'apartment', 'farm'], { required_error: 'Selecione o tipo de moradia' }),
-  acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Você precisa aceitar os termos' }) }),
+  hasOtherPets: z.enum(['yes', 'no'], { error: 'Selecione uma opção' }),
+  hasChildren: z.enum(['yes', 'no'], { error: 'Selecione uma opção' }),
+  housingType: z.enum(['house', 'apartment', 'farm'], { error: 'Selecione o tipo de moradia' }),
+  acceptTerms: z.literal(true, { error: 'Você precisa aceitar os termos' }),
 });
 
 type AdocaoForm = z.infer<typeof adocaoSchema>;

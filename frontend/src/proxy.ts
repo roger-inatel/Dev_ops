@@ -7,7 +7,7 @@ const protectedRoutes = ['/dashboard', '/perfil', '/minhas-adocoes', '/resgate']
 // Lista de rotas que só podem ser acessadas por quem NÃO está logado (ex: login, registro)
 const authRoutes = ['/login', '/registro'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Pegamos o token dos cookies (Middleware do Next.js roda no lado servidor, não acessa localStorage)
   // Nota: Para isso funcionar, seu login precisa salvar o token também nos Cookies ou você pode usar uma lógica de verificação de sessão.
   // Como você está usando localStorage no cliente, uma alternativa comum é verificar a rota no layout.tsx ou 
