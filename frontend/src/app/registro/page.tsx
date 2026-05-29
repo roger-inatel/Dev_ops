@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import BackToHome from '@/components/ui/BackToHome';
 
 
 // 1. O CONTRATO (ZOD)
@@ -261,12 +262,11 @@ export default function Register() {
                                     </button>
                                 </Link>
                             </form>
+                            <div className="mt-6">
+                                <BackToHome centered />
+                            </div> 
 
-                            <div className="mt-6 text-center">
-                                <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                                    ← Voltar para o site
-                                </Link>
-                            </div>
+                            
                         </div>
 
                         {/* Patinhas decorativas */}

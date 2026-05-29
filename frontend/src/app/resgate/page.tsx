@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BackToHome from '@/components/ui/BackToHome';
+import Header from '@/components/layout/Header';
 
 const resgateSchema = z.object({
   // Endereço
@@ -19,9 +20,9 @@ const resgateSchema = z.object({
   reference: z.string().optional(),
 
   // Info do animal
-  animalType: z.enum(['dog', 'cat', 'other'], { required_error: 'Selecione o tipo de animal' }),
+  animalType: z.enum(['dog', 'cat', 'other'], { error: 'Selecione o tipo de animal' }),
   animalCondition: z.enum(['injured', 'abandoned', 'sick', 'other'], {
-    required_error: 'Selecione a condição do animal',
+    error: 'Selecione a condição do animal',
   }),
   animalCount: z.string().min(1, 'Informe quantos animais'),
 
@@ -77,7 +78,7 @@ export default function ResgatePage() {
   if (submitted) {
     return (
       <main className="bg-[#F9F7F2] min-h-screen font-sans">
-        <Navbar />
+        <Header />
         <div className="h-20" />
         <div className="max-w-2xl mx-auto px-8 py-32 text-center">
           <span className="text-6xl mb-6 block">🐾</span>
