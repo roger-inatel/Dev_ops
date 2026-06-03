@@ -120,7 +120,7 @@
       [
         "jest-junit",
         {
-          "outputDirectory": "../",
+          "outputDirectory": "<rootDir>/../coverage",
           "outputName": "junit-unit.xml",
           "ancestorSeparator": " › ",
           "uniqueOutputName": "false",

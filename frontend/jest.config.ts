@@ -50,7 +50,7 @@ const config: Config = {
     reporters: [
         'default',
         ['jest-junit', {
-            outputDirectory: '<rootDir>/',
+            outputDirectory: '<rootDir>/coverage',
             outputName: 'junit-unit.xml',
             classNameTemplate: '{classname}',
             titleTemplate: '{title}',

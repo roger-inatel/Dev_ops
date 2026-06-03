@@ -142,8 +142,10 @@ pipeline {
   // -------------------------------------------------------------------------
   post {
     always {
-      // Relatorios JUnit -> ficam visiveis na pagina "Test Result" do build.
-      junit allowEmptyResults: true, testResults: 'backend/junit*.xml, frontend/junit*.xml'
+      // Relatorios JUnit (gerados em backend/coverage e frontend/coverage)
+      // -> ficam visiveis na pagina "Test Result" do build.
+      junit allowEmptyResults: true,
+            testResults: 'backend/coverage/junit-unit.xml, frontend/coverage/junit-unit.xml'
 
       // Pacote + relatorio HTML/lcov de coverage -> artefatos do build.
       archiveArtifacts artifacts: 'backend/dist/**, backend/coverage/**, frontend/.next/**, frontend/coverage/**',
