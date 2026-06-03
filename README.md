@@ -22,50 +22,61 @@ adotapet-monorepo/
 └── .github/workflows/          # 4 pipelines (unit + e2e × back/front)
 ```
 
-## Quick start (modo dev local, sem Docker para front/back)
+## Portas (todas configuráveis via `.env`)
 
-Pré-requisitos: Node 20+, npm, Docker.
+Para evitar conflito com outros projetos que rodam em paralelo, as portas no HOST foram movidas dos defaults:
 
-```bash
-# 1. clonar
-git clone https://github.com/S204-Inatel-2026-1/adotapet-monorepo.git
-cd adotapet-monorepo
+| Serviço | Porta no host (default) | Porta no container | Origem |
+| --- | --- | --- | --- |
+| MySQL | **3307** | 3306 | Docker Hub (`mysql:8`) |
+| Backend (NestJS) | **3010** | 3000 | Dockerfile local (`backend/Dockerfile`) |
+| Frontend (Next.js) | **3011** | 3000 | Dockerfile local (`frontend/Dockerfile`) |
+| MailHog SMTP | 1025 | 1025 | Docker Hub (`mailhog/mailhog`) |
+| MailHog Web UI | 8025 | 8025 | (mesmo container) |
 
-# 2. configurar env do monorepo (compose) e do backend (dev local)
-cp .env.example .env
-cp backend/.env.example backend/.env
-
-# 3. subir so o MySQL via compose
-docker compose up -d mysql
-
-# 4. backend (em uma aba)
-cd backend
-npm ci
-npx prisma generate
-npx prisma migrate dev
-npm run start:dev          # API em http://localhost:3000 (Swagger: /docs)
-
-# 5. frontend (em outra aba)
-cd ../frontend
-npm ci
-npm run dev                # UI em http://localhost:3001 (o backend ja ocupou 3000)
-```
+Para mudar, edite `.env`: `MYSQL_HOST_PORT`, `BACKEND_HOST_PORT`, `FRONTEND_HOST_PORT`, `MAILHOG_SMTP_PORT`, `MAILHOG_UI_PORT`. O `.env.example` já vem com esses defaults.
 
 ## Quick start (stack inteira via Docker Compose)
 
 ```bash
-cp .env.example .env       # ajuste JWT_SECRET (obrigatorio)
-docker compose up --build
+# 1. clonar e configurar
+git clone https://github.com/roger-inatel/Dev_ops.git
+cd Dev_ops
+cp .env.example .env         # ajuste JWT_SECRET (obrigatorio)
+
+# 2. subir tudo (4 containers: mysql + backend + frontend + mailhog)
+docker compose up --build -d
+
+# 3. acessar:
+# Swagger:      http://localhost:3010/docs
+# Frontend:     http://localhost:3011
+# MailHog UI:   http://localhost:8025
+# DBeaver:      localhost:3307 (user root / senha root, db adotapet)
 ```
 
-| Servico | Porta no host | Origem |
-| --- | --- | --- |
-| MySQL | `3306` | Docker Hub (`mysql:8`) |
-| Backend (NestJS) | `3000` | Dockerfile local (`backend/Dockerfile`) |
-| Frontend (Next.js) | `3001` | Dockerfile local (`frontend/Dockerfile`) |
-| **MailHog** (SMTP fake + inbox) | `1025` SMTP, `8025` Web UI | Docker Hub (`mailhog/mailhog`) |
+O backend roda `prisma migrate deploy` automaticamente no entrypoint do container — não precisa rodar migrations à mão. Healthcheck do MySQL garante que o backend só sobe quando o banco aceita conexões.
 
-> O healthcheck do MySQL garante que o backend só sobe depois que o banco aceita conexões. O backend roda `prisma migrate deploy` no entrypoint (ver `backend/Dockerfile`). O MailHog captura todos os e-mails do pipeline para conferência em `http://localhost:8025`.
+## Quick start (dev local, fora do Docker)
+
+Útil quando você quer rodar `npm run start:dev` com hot-reload:
+
+```bash
+# Banco continua no Docker (porta 3307 no host):
+docker compose up -d mysql
+
+# Backend (em uma aba):
+cd backend
+cp .env.example .env         # ja vem com DATABASE_URL apontando para 3307
+npm ci
+npx prisma generate
+npx prisma migrate deploy
+npm run start:dev            # API em http://localhost:3000
+
+# Frontend (em outra aba):
+cd frontend
+npm ci
+npm run dev                  # UI em http://localhost:3000 ou 3001
+```
 
 ## Documentação importante
 

@@ -8,8 +8,10 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-adotapet}
 
+    # Porta no HOST configuravel via .env. Default 3307 (evita conflito com
+    # MySQL local nativo na 3306, ainda comum em maquinas de dev).
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3307}:3306"
 
     volumes:
       - mysql_data:/var/lib/mysql
@@ -34,12 +36,16 @@ services:
         condition: service_healthy
 
     environment:
+      # PORT eh a porta DENTRO do container; o mapeamento para o host vem
+      # em 'ports' abaixo.
       PORT: 3000
       DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD:-root}@mysql:3306/${MYSQL_DATABASE:-adotapet}"
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - copy .env.example to .env}
 
+    # Porta no HOST configuravel. Default 3010 (evita 3000, comum em outros
+    # projetos rodando em paralelo).
     ports:
-      - "3000:3000"
+      - "${BACKEND_HOST_PORT:-3010}:3000"
 
     volumes:
       - backend_uploads:/app/uploads
@@ -56,22 +62,33 @@ services:
       - backend
 
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+      # BACKEND_INTERNAL_URL: o Next.js (server-side) usa para reescrever
+      # /api-backend/* . Dentro da rede do compose, 'backend' resolve para o
+      # container; em dev local seria http://localhost:3000.
+      BACKEND_INTERNAL_URL: http://backend:3000
 
+      # NEXT_PUBLIC_API_URL: exposta ao browser. Como o browser do usuario
+      # nao enxerga 'backend:3000', usa o mapeamento de host:
+      # http://localhost:${BACKEND_HOST_PORT}.
+      # Hoje o frontend usa o rewrite /api-backend (via BACKEND_INTERNAL_URL),
+      # entao NEXT_PUBLIC_API_URL fica como fallback/futuro.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${BACKEND_HOST_PORT:-3010}}
+
+    # Porta no HOST configuravel. Default 3011.
     ports:
-      - "3001:3000"
+      - "${FRONTEND_HOST_PORT:-3011}:3000"
 
   # 4o container - MailHog: SMTP fake + Web UI.
   # Atende: requisito NP2 S07 de "4+ containers", "comunicacao entre containers"
   # (backend/Jenkins enviam e-mail para mailhog:1025) e "container do Docker Hub".
-  # Web UI em http://localhost:8025 mostra todas as mensagens capturadas.
+  # Web UI em http://localhost:${MAILHOG_UI_PORT} mostra todas as mensagens.
   mailhog:
     image: mailhog/mailhog:latest
     container_name: adotapet_mailhog
     restart: always
     ports:
-      - "1025:1025"  # SMTP
-      - "8025:8025"  # Web UI (inbox)
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"   # SMTP
+      - "${MAILHOG_UI_PORT:-8025}:8025"     # Web UI (inbox)
     volumes:
       - mailhog_data:/maildir
     environment:

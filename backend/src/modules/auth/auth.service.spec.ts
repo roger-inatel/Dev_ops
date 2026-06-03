@@ -73,6 +73,7 @@ describe('Servico de autenticacao', () => {
   it('deve gerar token com sub e role quando o login for valido', async () => {
     usersServiceMock.findByEmailForAuth.mockResolvedValue({
       id: 'user-1',
+      fullName: 'Usuario Teste',
       email: 'usuario@teste.com',
       password: 'senha-hash',
       role: 'ADOPTER',
@@ -89,6 +90,16 @@ describe('Servico de autenticacao', () => {
       sub: 'user-1',
       role: 'ADOPTER',
     });
-    expect(result).toEqual({ access_token: 'jwt-token' });
+    // Login retorna access_token + objeto user (sem password) para o frontend
+    // popular AuthContext sem precisar de uma segunda chamada GET /users/:id.
+    expect(result).toEqual({
+      access_token: 'jwt-token',
+      user: {
+        id: 'user-1',
+        fullName: 'Usuario Teste',
+        email: 'usuario@teste.com',
+        role: 'ADOPTER',
+      },
+    });
   });
 });
