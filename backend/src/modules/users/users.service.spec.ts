@@ -172,4 +172,71 @@ describe('UsersService', () => {
       }),
     );
   });
+
+  it('deve buscar usuario para autenticacao normalizando o email', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'a@b.com',
+      password: 'hash',
+    });
+
+    await service.findByEmailForAuth('  A@B.com  ');
+
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: { email: 'a@b.com' },
+    });
+  });
+
+  it('deve propagar erros nao P2002 ao criar usuario', async () => {
+    (bcrypt.hash as jest.Mock).mockResolvedValue('senha-hash');
+    const boom = new Error('boom inesperado');
+    prismaMock.user.create.mockRejectedValue(boom);
+
+    await expect(
+      service.create({ fullName: 'X', email: 'x@x.com', password: 'Senha@1234' }),
+    ).rejects.toThrow(boom);
+  });
+
+  it('deve traduzir P2002 (email) ao atualizar usuario', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-1' });
+    prismaMock.user.update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+        meta: { target: ['email'] },
+      }),
+    );
+
+    await expect(
+      service.update('user-1', { email: 'duplicado@x.com' }),
+    ).rejects.toThrow(new BadRequestException('Email is already in use.'));
+  });
+
+  it('deve propagar erros nao P2002 ao atualizar usuario', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-1' });
+    const boom = new Error('boom inesperado');
+    prismaMock.user.update.mockRejectedValue(boom);
+
+    await expect(
+      service.update('user-1', { fullName: 'Novo Nome' }),
+    ).rejects.toThrow(boom);
+  });
+
+  it('deve remover usuario existente', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-1' });
+    prismaMock.user.delete.mockResolvedValue({
+      id: 'user-1',
+      fullName: 'Usuario Teste',
+      email: 'usuario@teste.com',
+      role: 'ADOPTER',
+      isActive: true,
+    });
+
+    await expect(service.remove('user-1')).resolves.toEqual(
+      expect.objectContaining({ id: 'user-1' }),
+    );
+    expect(prismaMock.user.delete).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'user-1' } }),
+    );
+  });
 });
