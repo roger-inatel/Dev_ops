@@ -54,6 +54,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # IMPORTANTE: Next.js compila os 'rewrites' em build time. Passamos
+      # BACKEND_INTERNAL_URL como build arg para o rewrite '/api-backend/*'
+      # apontar para 'http://backend:3000' dentro da rede do compose.
+      args:
+        BACKEND_INTERNAL_URL: http://backend:3000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${BACKEND_HOST_PORT:-3010}}
 
     container_name: adotapet_frontend
     restart: always
@@ -82,6 +88,11 @@ services:
   # Atende: requisito NP2 S07 de "4+ containers", "comunicacao entre containers"
   # (backend/Jenkins enviam e-mail para mailhog:1025) e "container do Docker Hub".
   # Web UI em http://localhost:${MAILHOG_UI_PORT} mostra todas as mensagens.
+  #
+  # Storage padrao: in-memory (mensagens somem em restart). Suficiente para
+  # demo da pipeline e para o time conferir que o e-mail saiu. Se quiser
+  # persistir, monte um volume em /maildir e adicione MH_STORAGE=maildir,
+  # MH_MAILDIR_PATH=/maildir - cuide das permissoes (uid do mailhog).
   mailhog:
     image: mailhog/mailhog:latest
     container_name: adotapet_mailhog
@@ -89,13 +100,7 @@ services:
     ports:
       - "${MAILHOG_SMTP_PORT:-1025}:1025"   # SMTP
       - "${MAILHOG_UI_PORT:-8025}:8025"     # Web UI (inbox)
-    volumes:
-      - mailhog_data:/maildir
-    environment:
-      MH_STORAGE: maildir
-      MH_MAILDIR_PATH: /maildir
 
 volumes:
   mysql_data:
   backend_uploads:
-  mailhog_data:
