@@ -4,6 +4,11 @@ services:
     container_name: adotapet_mysql
     restart: always
 
+    # MySQL 8.4 desabilita mysql_native_password por padrao. Habilitar para
+    # que clientes JDBC/DBeaver conectem sem precisar configurar SSL ou
+    # 'allowPublicKeyRetrieval=true'. O init.sql faz o ALTER USER do root.
+    command: ["mysqld", "--mysql-native-password=ON"]
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-adotapet}
@@ -15,6 +20,10 @@ services:
 
     volumes:
       - mysql_data:/var/lib/mysql
+      # Scripts colocados em /docker-entrypoint-initdb.d/ rodam quando o
+      # volume mysql_data eh criado pela primeira vez (primeiro 'up' ou
+      # apos 'compose down -v').
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/01-auth-plugin.sql:ro
 
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
