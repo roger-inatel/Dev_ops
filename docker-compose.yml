@@ -5,8 +5,8 @@ services:
     restart: always
 
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: adotapet
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-adotapet}
 
     ports:
       - "3306:3306"
@@ -14,28 +14,39 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
   backend:
     build:
-      context: ./backend/tst-back-s204
+      context: ./backend
       dockerfile: Dockerfile
 
     container_name: adotapet_backend
     restart: always
 
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
     environment:
       PORT: 3000
-      DATABASE_URL: "mysql://root:root@mysql:3306/adotapet"
-      JWT_SECRET: "trocar_em_producao"
+      DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD:-root}@mysql:3306/${MYSQL_DATABASE:-adotapet}"
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - copy .env.example to .env}
 
     ports:
       - "3000:3000"
 
+    volumes:
+      - backend_uploads:/app/uploads
+
   frontend:
     build:
-      context: ./frontend/tst-front-s204
+      context: ./frontend
       dockerfile: Dockerfile
 
     container_name: adotapet_frontend
@@ -45,10 +56,11 @@ services:
       - backend
 
     environment:
-      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
 
     ports:
       - "3001:3000"
 
 volumes:
   mysql_data:
+  backend_uploads:
