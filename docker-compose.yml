@@ -61,6 +61,24 @@ services:
     ports:
       - "3001:3000"
 
+  # 4o container - MailHog: SMTP fake + Web UI.
+  # Atende: requisito NP2 S07 de "4+ containers", "comunicacao entre containers"
+  # (backend/Jenkins enviam e-mail para mailhog:1025) e "container do Docker Hub".
+  # Web UI em http://localhost:8025 mostra todas as mensagens capturadas.
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: adotapet_mailhog
+    restart: always
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI (inbox)
+    volumes:
+      - mailhog_data:/maildir
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /maildir
+
 volumes:
   mysql_data:
   backend_uploads:
+  mailhog_data:

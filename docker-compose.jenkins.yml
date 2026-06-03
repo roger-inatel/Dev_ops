@@ -1,0 +1,53 @@
+# Compose dedicado ao Jenkins (Projeto S07 NP2).
+#
+# Mantemos o Jenkins fora do compose principal para nao "amarrar" a vida do
+# servidor de CI ao ciclo da aplicacao. Sobe com:
+#   docker compose -f docker-compose.jenkins.yml up -d --build
+#
+# A imagem eh CUSTOMIZADA (jenkins/Dockerfile) e ja vem com Node 20, Docker CLI
+# e os plugins necessarios - cumprindo a regra do PDF: "qualquer software
+# necessario para a execucao do pipeline deve ser instalado via script ou
+# Dockerfile".
+
+services:
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+
+    image: adotapet-jenkins:latest
+    container_name: adotapet_jenkins
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"   # UI Jenkins
+      - "50000:50000" # canal para agentes (se algum dia o time adicionar)
+
+    environment:
+      # Desabilita a "tela de boas-vindas" para forcar configuracao por codigo;
+      # a senha inicial continua sendo gerada (vista em
+      # /var/jenkins_home/secrets/initialAdminPassword).
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=true"
+
+    volumes:
+      # Persiste estado do Jenkins (jobs, plugins, credentials)
+      - jenkins_home:/var/jenkins_home
+
+      # Socket do daemon Docker do HOST - permite "Docker-from-Docker":
+      # builds e pushes para o Docker Hub acontecem na engine do host, mas
+      # disparados pelos `sh 'docker build ...'` dentro do pipeline.
+      # Em Linux, ajuste o group_add abaixo para o GID real do grupo 'docker'
+      # do host (ex.: 999). Em Windows/Mac (Docker Desktop) nao precisa.
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    # Em Linux, descomente e use o GID do grupo 'docker' do host:
+    # group_add:
+    #   - "999"
+
+    # Permite acessar 'host.docker.internal' a partir do container - util para
+    # alcancar o MailHog rodando no compose principal (porta 1025 do host).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  jenkins_home:
