@@ -212,7 +212,7 @@ def status_table(rows):
 def ports_table():
     data = [
         ["Servico", "Porta no HOST", "Porta no container", "URL / Acesso"],
-        ["MySQL", "3307", "3306", "DBeaver: localhost:3307 / root / root"],
+        ["MySQL", "3316", "3306", "DBeaver: localhost:3316 / root / root"],
         ["Backend (NestJS)", "3010", "3000", "http://localhost:3010/docs (Swagger)"],
         ["Frontend (Next.js)", "3011", "3000", "http://localhost:3011"],
         ["MailHog SMTP", "1025", "1025", "(usado pelo notify-email.js)"],
@@ -418,7 +418,7 @@ def build_story():
         "Node.js 20+ (so necessario se quiser rodar fora do Docker).",
         "Docker Desktop (ou Docker Engine + Compose v2).",
         "Git.",
-        "<b>DBeaver</b> (opcional, ja configurado para localhost:3307 - ver imagem original).",
+        "<b>DBeaver</b> (opcional, ja configurado para localhost:3316 - ver imagem original).",
     ]))
 
     s.append(Paragraph("Passo 1 - clonar e configurar", styles["H2"]))
@@ -444,7 +444,7 @@ def build_story():
         "docker compose ps\n"
         "\n"
         "# Voces devem ver 4 containers:\n"
-        "#   adotapet_mysql      (healthy, porta 3307)\n"
+        "#   adotapet_mysql      (healthy, porta 3316)\n"
         "#   adotapet_backend    (porta 3010)\n"
         "#   adotapet_frontend   (porta 3011)\n"
         "#   adotapet_mailhog    (portas 1025 + 8025)\n"
@@ -482,7 +482,7 @@ def build_story():
 
     s.append(Paragraph("b) Banco - via DBeaver ou CLI", styles["H2"]))
     s.append(Paragraph(
-        "Use a conexao DBeaver que ja existe (host: localhost, porta: 3307, "
+        "Use a conexao DBeaver que ja existe (host: localhost, porta: 3316, "
         "user: root, senha: root, db: adotapet). Voce deve ver as tabelas "
         "criadas pelas migrations do Prisma (User, Pet, Organization, "
         "AdoptionRequest, ResponsibilityTerm, etc).",
@@ -505,6 +505,51 @@ def build_story():
         "  -H \"Content-Type: application/json\" \\\n"
         "  -d '{\"email\":\"joao@test.com\",\"password\":\"Str0ng@Pass1\"}'\n"
     ))
+
+    s.append(Paragraph("c.1) Atalho - usuarios seed prontos", styles["H2"]))
+    s.append(Paragraph(
+        "Em vez de criar tudo na mao, rode <code>sh scripts/seed.sh</code> "
+        "(funciona com o stack rodando) - ele cria 4 usuarios + 3 pets de "
+        "exemplo via API e imprime as credenciais. Use estas no Swagger ou "
+        "no frontend <code>http://localhost:3011/login</code>:",
+        styles["Body"]))
+    seed_data = [
+        ["Papel", "E-mail", "Senha", "O que pode fazer"],
+        ["ADMIN",     "admin@adotapet.local", "Admin@123",
+         "Acesso amplo (visualizar /users, gerenciar organizacoes)."],
+        ["ONG_ADMIN", "ong@adotapet.local",   "Ong@12345",
+         "Cadastra/edita Pets e Organizacoes; aprova adocoes recebidas."],
+        ["ADOPTER",   "lucas@adotapet.local", "Lucas@123",
+         "Solicita adocao de pets; assina o termo de responsabilidade."],
+        ["ADOPTER",   "maria@adotapet.local", "Maria@123",
+         "Outro adotante para simular concorrencia entre solicitacoes."],
+    ]
+    t = Table(seed_data, colWidths=[2.2*cm, 4.6*cm, 2.4*cm, 7.6*cm], repeatRows=1)
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,0), PALETTE["primary"]),
+        ("TEXTCOLOR",  (0,0), (-1,0), PALETTE["white"]),
+        ("FONTNAME",   (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE",   (0,0), (-1,0), 9),
+        ("FONTNAME",   (0,1), (-1,-1), "Helvetica"),
+        ("FONTSIZE",   (0,1), (-1,-1), 8.5),
+        ("FONTNAME",   (1,1), (2,-1), "Courier"),
+        ("VALIGN",     (0,0), (-1,-1), "MIDDLE"),
+        ("GRID",       (0,0), (-1,-1), 0.4, PALETTE["muted"]),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1),
+            [PALETTE["white"], colors.HexColor("#F7FAFC")]),
+        ("LEFTPADDING",  (0,0), (-1,-1), 6),
+        ("RIGHTPADDING", (0,0), (-1,-1), 6),
+        ("TOPPADDING",   (0,0), (-1,-1), 5),
+        ("BOTTOMPADDING",(0,0), (-1,-1), 5),
+    ]))
+    s.append(t)
+    s.append(Spacer(1, 4))
+    s.append(Paragraph(
+        "Pets pre-criados pela ONG: Thor (DOG, Labrador, MG), Mel (CAT, MG), "
+        "Bidu (DOG, filhote). O fluxo de adocao completo pode ser testado "
+        "logando como Lucas ou Maria, escolhendo um pet em "
+        "<code>/pet/[id]</code>, e aprovando como a ONG.",
+        styles["Note"]))
 
     s.append(Paragraph("d) Frontend (UI)", styles["H2"]))
     s.extend(bullets([
@@ -842,7 +887,7 @@ def build_story():
         "Stack do projeto sobe? <code>docker compose up -d</code> -> 4 containers verdes?",
         "Swagger abre em <code>http://localhost:3010/docs</code>?",
         "Frontend abre em <code>http://localhost:3011</code>?",
-        "DBeaver conecta em localhost:3307?",
+        "DBeaver conecta em localhost:3316?",
         "Jenkins abre em <code>http://localhost:8080</code>?",
         "Job 'adotapet-pipeline' configurado pelo SCM (NAO pela GUI)?",
         "Variavel NOTIFY_EMAIL setada em Configure System?",
@@ -861,7 +906,7 @@ def build_story():
 
     s.append(Paragraph("Port already allocated ao subir o compose", styles["H3"]))
     s.append(Paragraph(
-        "Algum outro projeto seu esta usando a porta 3010, 3011, 3307, 1025 ou 8025. "
+        "Algum outro projeto seu esta usando a porta 3010, 3011, 3316, 1025 ou 8025. "
         "Edite <code>.env</code> e mude o numero (variaveis BACKEND_HOST_PORT, "
         "FRONTEND_HOST_PORT, etc.). Depois <code>docker compose up -d</code>.",
         styles["Body"]))
@@ -901,7 +946,7 @@ def build_story():
         "<code>backend/src/modules/auth/auth.service.ts</code> e o spec.",
         styles["Body"]))
 
-    s.append(Paragraph("MySQL nao sobe (porta 3306 / 3307 ocupada)", styles["H3"]))
+    s.append(Paragraph("MySQL nao sobe (porta 3306 / 3316 ocupada)", styles["H3"]))
     s.append(Paragraph(
         "Em geral acontece quando ha um MySQL nativo no Windows. Pare o servico ou "
         "mude a porta no <code>.env</code> (MYSQL_HOST_PORT=3308, por ex.). Lembre-se "
