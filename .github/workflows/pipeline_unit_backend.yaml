@@ -7,7 +7,7 @@ on:
       - pipeline-update
     paths:
       - 'backend/**'
-      - '.github/workflows/pipeline_back_unit.yml'
+      - '.github/workflows/pipeline_unit_backend.yaml'
 
   pull_request:
     branches:
@@ -15,7 +15,7 @@ on:
       - pipeline-update
     paths:
       - 'backend/**'
-      - '.github/workflows/pipeline_back_unit.yml'
+      - '.github/workflows/pipeline_unit_backend.yaml'
 
 jobs:
   build:
@@ -41,7 +41,7 @@ jobs:
 
       - run: npx prisma generate
         env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+          DATABASE_URL: "mysql://user:pass@localhost:3306/db"
 
       - run: npm run build
 
@@ -64,7 +64,7 @@ jobs:
 
       - run: npx prisma generate
         env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+          DATABASE_URL: "mysql://user:pass@localhost:3306/db"
 
       - run: npm run test:cov
 

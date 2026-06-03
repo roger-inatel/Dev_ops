@@ -7,7 +7,7 @@ on:
       - pipeline-update
     paths:
       - 'frontend/**'
-      - '.github/workflows/pipeline_front_unit.yml'
+      - '.github/workflows/pipeline_front_unit_frontend.yaml'
 
   pull_request:
     branches:
@@ -15,7 +15,7 @@ on:
       - pipeline-update
     paths:
       - 'frontend/**'
-      - '.github/workflows/pipeline_front_unit.yml'
+      - '.github/workflows/pipeline_front_unit_frontend.yaml'
 
 env:
   NODE_VERSION: '22'
