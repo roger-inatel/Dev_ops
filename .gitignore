@@ -1,0 +1,32 @@
+# Variaveis de ambiente (NUNCA commitar - use .env.example como template)
+.env
+.env.local
+*.env
+!.env.example
+
+# Dependencias - cada pacote tem seu node_modules
+node_modules/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Coverage / artefatos de pipeline (gerados em CI, nao versionar)
+coverage/
+junit*.xml
+.next/
+dist/
+build/
+
+# Volumes Docker locais (caso alguem rode com bind mounts)
+data/
+uploads/

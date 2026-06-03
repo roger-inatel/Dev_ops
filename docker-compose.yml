@@ -5,38 +5,61 @@ services:
     restart: always
 
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: adotapet
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-adotapet}
 
+    # Porta no HOST configuravel via .env. Default 3307 (evita conflito com
+    # MySQL local nativo na 3306, ainda comum em maquinas de dev).
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3307}:3306"
 
     volumes:
       - mysql_data:/var/lib/mysql
 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
   backend:
     build:
-      context: ./backend/tst-back-s204
+      context: ./backend
       dockerfile: Dockerfile
 
     container_name: adotapet_backend
     restart: always
 
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
     environment:
+      # PORT eh a porta DENTRO do container; o mapeamento para o host vem
+      # em 'ports' abaixo.
       PORT: 3000
-      DATABASE_URL: "mysql://root:root@mysql:3306/adotapet"
-      JWT_SECRET: "trocar_em_producao"
+      DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD:-root}@mysql:3306/${MYSQL_DATABASE:-adotapet}"
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - copy .env.example to .env}
 
+    # Porta no HOST configuravel. Default 3010 (evita 3000, comum em outros
+    # projetos rodando em paralelo).
     ports:
-      - "3000:3000"
+      - "${BACKEND_HOST_PORT:-3010}:3000"
+
+    volumes:
+      - backend_uploads:/app/uploads
 
   frontend:
     build:
-      context: ./frontend/tst-front-s204
+      context: ./frontend
       dockerfile: Dockerfile
+      # IMPORTANTE: Next.js compila os 'rewrites' em build time. Passamos
+      # BACKEND_INTERNAL_URL como build arg para o rewrite '/api-backend/*'
+      # apontar para 'http://backend:3000' dentro da rede do compose.
+      args:
+        BACKEND_INTERNAL_URL: http://backend:3000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${BACKEND_HOST_PORT:-3010}}
 
     container_name: adotapet_frontend
     restart: always
@@ -45,10 +68,39 @@ services:
       - backend
 
     environment:
-      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+      # BACKEND_INTERNAL_URL: o Next.js (server-side) usa para reescrever
+      # /api-backend/* . Dentro da rede do compose, 'backend' resolve para o
+      # container; em dev local seria http://localhost:3000.
+      BACKEND_INTERNAL_URL: http://backend:3000
 
+      # NEXT_PUBLIC_API_URL: exposta ao browser. Como o browser do usuario
+      # nao enxerga 'backend:3000', usa o mapeamento de host:
+      # http://localhost:${BACKEND_HOST_PORT}.
+      # Hoje o frontend usa o rewrite /api-backend (via BACKEND_INTERNAL_URL),
+      # entao NEXT_PUBLIC_API_URL fica como fallback/futuro.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${BACKEND_HOST_PORT:-3010}}
+
+    # Porta no HOST configuravel. Default 3011.
     ports:
-      - "3001:3000"
+      - "${FRONTEND_HOST_PORT:-3011}:3000"
+
+  # 4o container - MailHog: SMTP fake + Web UI.
+  # Atende: requisito NP2 S07 de "4+ containers", "comunicacao entre containers"
+  # (backend/Jenkins enviam e-mail para mailhog:1025) e "container do Docker Hub".
+  # Web UI em http://localhost:${MAILHOG_UI_PORT} mostra todas as mensagens.
+  #
+  # Storage padrao: in-memory (mensagens somem em restart). Suficiente para
+  # demo da pipeline e para o time conferir que o e-mail saiu. Se quiser
+  # persistir, monte um volume em /maildir e adicione MH_STORAGE=maildir,
+  # MH_MAILDIR_PATH=/maildir - cuide das permissoes (uid do mailhog).
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: adotapet_mailhog
+    restart: always
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"   # SMTP
+      - "${MAILHOG_UI_PORT:-8025}:8025"     # Web UI (inbox)
 
 volumes:
   mysql_data:
+  backend_uploads:

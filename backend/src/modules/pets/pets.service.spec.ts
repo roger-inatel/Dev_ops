@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PetSize, PetStatus, Sex, Species } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -123,5 +123,82 @@ describe('PetsService', () => {
     );
 
     expect(prismaMock.pet.delete).not.toHaveBeenCalled();
+  });
+
+  it('deve retornar 404 ao buscar pet inexistente', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue(null);
+
+    await expect(service.findOne('inexistente')).rejects.toThrow(
+      new NotFoundException('Pet with id "inexistente" was not found.'),
+    );
+  });
+
+  it('deve retornar 404 ao atualizar pet inexistente', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.update('inexistente', { name: 'X' }, 'user-dono'),
+    ).rejects.toThrow(NotFoundException);
+    expect(prismaMock.pet.update).not.toHaveBeenCalled();
+  });
+
+  it('deve atualizar pet com sucesso quando o user e dono', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue({
+      id: 'pet-1',
+      registeredById: 'user-dono',
+    });
+    const updated = { id: 'pet-1', name: 'Thor 2' };
+    prismaMock.pet.update.mockResolvedValue(updated);
+
+    await expect(
+      service.update('pet-1', { name: 'Thor 2' }, 'user-dono'),
+    ).resolves.toEqual(updated);
+
+    expect(prismaMock.pet.update).toHaveBeenCalledWith({
+      where: { id: 'pet-1' },
+      data: { name: 'Thor 2' },
+    });
+  });
+
+  it('deve remover pet com sucesso quando o user e dono', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue({
+      id: 'pet-1',
+      registeredById: 'user-dono',
+    });
+    prismaMock.pet.delete.mockResolvedValue({ id: 'pet-1' });
+
+    await expect(service.remove('pet-1', 'user-dono')).resolves.toEqual({
+      id: 'pet-1',
+    });
+    expect(prismaMock.pet.delete).toHaveBeenCalledWith({ where: { id: 'pet-1' } });
+  });
+
+  it('deve aceitar uploadPhoto do dono e gravar photoUrl', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue({
+      id: 'pet-1',
+      registeredById: 'user-dono',
+    });
+    prismaMock.pet.update.mockResolvedValue({ id: 'pet-1', photoUrl: '/uploads/x.jpg' });
+
+    await expect(
+      service.uploadPhoto('pet-1', 'user-dono', '/uploads/x.jpg'),
+    ).resolves.toEqual(expect.objectContaining({ photoUrl: '/uploads/x.jpg' }));
+
+    expect(prismaMock.pet.update).toHaveBeenCalledWith({
+      where: { id: 'pet-1' },
+      data: { photoUrl: '/uploads/x.jpg' },
+    });
+  });
+
+  it('deve impedir uploadPhoto quando o user nao e dono do pet', async () => {
+    prismaMock.pet.findUnique.mockResolvedValue({
+      id: 'pet-1',
+      registeredById: 'user-dono',
+    });
+
+    await expect(
+      service.uploadPhoto('pet-1', 'user-outro', '/uploads/x.jpg'),
+    ).rejects.toThrow(ForbiddenException);
+    expect(prismaMock.pet.update).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,12 @@
+{
+  "name": "adotapet-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts auxiliares do pipeline NP2 S07 (notificacao por e-mail).",
+  "scripts": {
+    "notify": "node notify-email.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  }
+}

@@ -29,8 +29,18 @@ export class AuthService {
       role: user.role,
     };
 
+    // Retornamos tambem o objeto 'user' (sem a senha) - o frontend usa esses
+    // dados em AuthContext para popular o menu, dashboard e perfil. Sem
+    // isso, o login pela UI funciona mas o user fica undefined e a tela
+    // privada quebra.
     return {
       access_token: await this.jwtService.signAsync(payload),
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
 }

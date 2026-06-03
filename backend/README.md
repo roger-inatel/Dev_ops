@@ -27,7 +27,7 @@ O AdotaPet nasce com o objetivo de estruturar e centralizar o processo de adoç�
 - ✅ Setup inicial do backend concluído.
 - ✅ Prisma configurado e conectado ao MySQL via Docker.
 - ✅ Módulos Base: Pets, Usuários e ONGs implementados.
-- ✅ Segurança Avançada: Login (JWT + Bcrypt) e RBAC (Controle de Acesso por Papéis: ADMIN, NGO_ADMIN, ADOPTER).
+- ✅ Segurança Avançada: Login (JWT + Bcrypt) e RBAC (Controle de Acesso por Papéis: ADMIN, ONG_ADMIN, ADOPTER).
 - ✅ Upload de Arquivos: Imagens de Pets via Multer (preparado para Docker Volumes).
 - ✅ Adoções & Termos: Fluxo completo de match, transações de aprovação e assinatura digital com rastro de auditoria (IP/User-Agent).
 - ⏳ Próximos passos: Sistema de Denúncias e Resgates (Upload de mídia e geolocalização).
@@ -43,9 +43,11 @@ Antes de começar, garanta que você tenha instalado:
 
 ### 2. Clone o repositório e instale dependências
 
+O backend faz parte do monorepo `adotapet-monorepo`. Clone o repositório e entre na pasta `backend/`:
+
 ```bash
-git clone <URL_DO_REPOSITORIO>
-cd adotapet-backend
+git clone https://github.com/S204-Inatel-2026-1/adotapet-monorepo.git
+cd adotapet-monorepo/backend
 npm install
 ```
 
@@ -65,10 +67,17 @@ Copy-Item .env.example .env
 
 ### 4. Suba o banco MySQL via Docker
 
-Use o comando abaixo exatamente como definido no projeto:
+Use o `docker-compose.yml` da raiz do monorepo — ele já está configurado com healthcheck e variáveis em `.env`:
 
 ```bash
-docker run --name adotapet-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=adotapet -p 3306:3306 -d mysql:8.0
+# A partir da raiz do monorepo:
+docker compose up -d mysql
+```
+
+Alternativa avulsa, sem usar o compose (não recomendado, mas funciona):
+
+```bash
+docker run --name adotapet-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=adotapet -p 3306:3306 -d mysql:8
 ```
 
 ### 5. Execute as migrações do Prisma
@@ -89,11 +98,11 @@ A API estará disponível em `http://localhost:3000`.
 
 Se você abrir `http://localhost:3000`, verá apenas uma resposta de prova de vida da aplicação.
 
-## ?? Como usar a API (Frontend + Swagger)
+## Como usar a API (Frontend + Swagger)
 
 A documentação interativa da API fica em:
 
-?? `http://localhost:3000/docs`
+- `http://localhost:3000/docs`
 
 É no Swagger que Frontend e Backend alinham contrato de payloads, respostas e autenticação.
 

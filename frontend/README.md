@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AdotaPet - Frontend
 
-## Getting Started
+![Next.js](https://img.shields.io/badge/Next.js-16.x-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss&logoColor=white)
 
-First, run the development server:
+Frontend oficial do **AdotaPet** - app web para adoção responsável de animais.
+Projeto acadêmico da disciplina **S204 / INATEL**, parte do monorepo `adotapet-monorepo`.
+
+## Stack
+
+- **Next.js 16** (App Router) + **React 19**
+- **TypeScript** com tipagem estrita
+- **Tailwind CSS 4** para estilização
+- **React Hook Form + Zod** para formulários
+- **Jest + Testing Library** para testes unitários
+- **Cypress** para testes e2e
+
+> Atenção: este projeto usa Next.js 16, onde **`middleware.ts` foi renomeado para `proxy.ts`**. Veja `src/proxy.ts` - é onde mora a proteção de rotas privadas. Não recrie um `middleware.ts`.
+
+## Como rodar localmente
+
+Pré-requisitos: Node 20+ e o backend rodando em `http://localhost:3000`.
 
 ```bash
+cd frontend
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Dev server: `http://localhost:3000` (ou `3001` se o backend já ocupou o 3000).
+- O Next.js reescreve `/api-backend/*` para `http://localhost:3000/*` (ver `next.config.ts`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variável | Onde é usada | Valor padrão |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | Lida no browser pelo client da API quando o frontend roda em produção/Docker. | `http://localhost:3000` |
 
-## Learn More
+Em dev local não é necessário criar `.env.local` - o rewrite de `/api-backend` em `next.config.ts` cuida do roteamento para o backend.
 
-To learn more about Next.js, take a look at the following resources:
+## Estrutura
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/            # rotas (App Router)
+    page.tsx        - home (lista de pets)
+    login/          - login
+    registro/       - cadastro
+    dashboard/      - area autenticada
+    perfil/         - perfil do usuario
+    minhas-adocoes/ - solicitacoes do adotante
+    pet/[id]/       - detalhe de pet
+    contato/, faq/, denunciar/, resgate/
+  components/     # UI, layout, home, pets
+  contexts/       # AuthContext (login/logout, user, token)
+  hooks/          # usePets, useFilters
+  services/api.ts # cliente HTTP (fetch + Bearer JWT)
+  proxy.ts        # protecao de rotas privadas (Next 16)
+  types/          # tipos compartilhados
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Integração com o backend
 
-## Deploy on Vercel
+- O token JWT é salvo em `localStorage` (`adotapet_token`) e em cookie homônimo (para o `proxy.ts` poder ver no servidor).
+- Todas as requisições passam por `services/api.ts`, que injeta `Authorization: Bearer <token>` automaticamente.
+- Para testar regras do backend via Swagger antes de integrar uma tela, veja [GUIA_SWAGGER_FRONTEND.md](../backend/GUIA_SWAGGER_FRONTEND.md).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev           # dev server (webpack)
+npm run build         # build de producao
+npm run start         # serve o build
+npm run lint          # ESLint
+npm run test          # Jest (unitarios)
+npm run test:watch    # Jest watch
+npm run cypress:open  # Cypress UI
+```
+
+## Testes
+
+- Unitários: `__tests__/` + co-localizados.
+- E2E: `cypress/e2e/` (config: `cypress.config.ts`). Atenção: hoje o `baseUrl` de Cypress aponta para `http://localhost:3001`; se rodar `next dev` na 3000, ajuste a env `CYPRESS_BASE_URL`.
+
+## Licença
+
+Projeto acadêmico para fins educacionais.
